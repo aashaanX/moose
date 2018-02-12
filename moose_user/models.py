@@ -133,3 +133,7 @@ class MooseUser(AbstractBaseUser):
     @property
     def is_admin(self):
         return self.admin
+
+    def set_status(self, status):
+        self.status = status
+        self.save()
