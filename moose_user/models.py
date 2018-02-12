@@ -5,7 +5,7 @@ from randomslugfield.fields import RandomSlugField
 from moose import settings
 
 class MooseUserManager(BaseUserManager):
-    def create_user(self, user_email, full_name, gender, dob, password):
+    def create_user(self, user_email, full_name, password):
         """
         :param mobile:
         :param full_name:
@@ -25,12 +25,10 @@ class MooseUserManager(BaseUserManager):
             print(user.user_slug)
             password = user.user_slug
         user.set_password(password)
-        user.gender = gender
-        user.dob=dob
         user.save()
         return user
 
-    def create_staff_user(self, user_email, full_name, gender, dob, password):
+    def create_staffuser(self, user_email, full_name, password):
         """
         :param user_email:
         :param full_name:
@@ -39,13 +37,13 @@ class MooseUserManager(BaseUserManager):
         :param password:
         :return:
         """
-        user = self.create_user(user_email, full_name, gender, dob, password)
+        user = self.create_user(user_email, full_name, password)
         user.staff = True
         user.save()
         return user
 
 
-    def create_super_user(self, user_email, full_name, gender, dob, password):
+    def create_superuser(self, user_email, full_name, password):
         """
         :param user_email:
         :param full_name:
@@ -54,7 +52,7 @@ class MooseUserManager(BaseUserManager):
         :param password:
         :return:
         """
-        user = self.create_user(user_email, full_name, gender, dob, password)
+        user = self.create_user(user_email, full_name, password)
         user.staff = True
         user.admin = True
         user.save()
