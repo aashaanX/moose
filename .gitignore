@@ -1,5 +1,4 @@
 **/migrations
 **/__pycache__/
-/.idea
+*.idea
 db.sqlite3
-manage.py
