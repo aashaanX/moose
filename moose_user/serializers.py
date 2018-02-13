@@ -7,7 +7,7 @@ class MooseUserRegisterSerializer(serializers.Serializer):
     """
     user_email = serializers.EmailField(required=True)
     password = serializers.CharField(style={'input_type':'password'})
-    full_name = serializers.CharField(required=False)
+    full_name = serializers.CharField(required=True)
     about_user = serializers.CharField(required=False)
     gender = serializers.CharField(required=False)
     dob = serializers.DateTimeField(required=False)
