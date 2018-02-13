@@ -12,3 +12,8 @@ class MooseUserRegisterSerializer(serializers.Serializer):
     gender = serializers.CharField(required=False)
     dob = serializers.DateTimeField(required=False)
 
+
+class MooseUserLoginSerializer(serializers.Serializer):
+    user_email = serializers.EmailField(required=True)
+    password = serializers.CharField(style={'input_type': 'password'}, required=True)
+
