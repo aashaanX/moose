@@ -3,8 +3,8 @@ from randomslugfield.fields import RandomSlugField
 
 from moose_user.models import MooseUser
 
-class Comment(models.Model):
 
+class Comment(models.Model):
     comment_id = models.AutoField(primary_key=True)
     comment_slug = RandomSlugField(length=9)
     moose_user = models.ForeignKey(MooseUser, on_delete=models.CASCADE)
@@ -14,19 +14,16 @@ class Comment(models.Model):
         return self.comment_slug
 
 
-
 class Answer(models.Model):
-
     answer_id = models.AutoField(primary_key=True)
     answer_slug = RandomSlugField(length=9)
-    moose_user = models.ForeignKey(MooseUser,on_delete=models.CASCADE)
+    moose_user = models.ForeignKey(MooseUser, on_delete=models.CASCADE)
     answer_description = models.TextField()
     comments = models.ManyToManyField(Comment)
-    votes = models.IntegerField(default=0, null= False)
+    votes = models.IntegerField(default=0, null=False)
 
     def __str__(self):
         return self.answer_slug
-
 
 
 class Question(models.Model):
@@ -49,10 +46,8 @@ class Question(models.Model):
         return self.question_title + "|" + self.moose_user.full_name
 
     def get_answers(self):
-        answers_set =  self.answers.order_by('votes')
-        return answers_set.values('moose_user__full_name','answer_description', 'votes')
+        answers_set = self.answers.order_by('votes')
+        return answers_set.values('moose_user__full_name', 'answer_description', 'votes')
 
     def get_comments(self):
         return self.comments.values('comment_description', 'moose_user__full_name')
-
-
