@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'moose_user.apps.MooseUserConfig',
-    'rest_framework'
+    'rest_framework',
+    'qna.apps.QnaConfig',
 ]
 
 MIDDLEWARE = [
