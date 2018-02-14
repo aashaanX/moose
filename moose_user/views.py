@@ -57,8 +57,12 @@ class LoginMooseUser(APIView):
                 return Response(data={"SUCCESS": False, "msg": "Wrong username/ password"},
                                 status=status.HTTP_400_BAD_REQUEST)
             try:
+                moose_user.status = 'available'
+                moose_user.save()
                 user = authenticate(user_email=user_email, password=password)
             except Exception as e:
+                moose_user.status = 'offline'
+                moose_user.save()
                 print("Error while trying to authenticate user | {}".format(e))
                 return Response(data={"SUCCESS": False, "msg": "Wrong username/ password"},
                                 status=status.HTTP_400_BAD_REQUEST)
@@ -72,9 +76,17 @@ class LoginMooseUser(APIView):
             return Response(data={"SUCCESS": False, "msg": "login credentials not validated"},
                             status=status.HTTP_400_BAD_REQUEST)
 
-class LogoutMooseUser(APIView):
 
+class LogoutMooseUser(APIView):
     def get(self, request, format=None):
         if request.user.is_authenticated:
+            user_name = str(request.user).split("|")[0].strip()
+            try:
+                moose_user = MooseUser.objects.get(user_email=user_name)
+            except Exception as e:
+                print("Cannot get moose user")
+                return Response({"SUCCESS": False}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            moose_user.status = 'offline'
+            moose_user.save()
             logout(request)
         return Response({"SUCCESS": True}, status=status.HTTP_200_OK)

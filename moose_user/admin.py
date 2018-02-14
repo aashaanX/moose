@@ -1,3 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
+from moose_user.models import MooseUser
+
+admin.site.register(MooseUser)

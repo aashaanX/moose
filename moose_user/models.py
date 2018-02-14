@@ -114,7 +114,7 @@ class MooseUser(AbstractBaseUser):
         return self.full_name.split(" ")[0]
 
     def __str__(self):
-        return self.user_email + self.status
+        return self.user_email + " | " + self.status
 
     def has_perm(self, perm, obj=None):
         return True
