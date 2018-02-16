@@ -21,4 +21,5 @@ from django.urls import path
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('user/', include('moose_user.urls')),
+    path('qna/',include('qna.urls')),
 ]
