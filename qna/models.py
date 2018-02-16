@@ -13,6 +13,9 @@ class Comment(models.Model):
     def __str__(self):
         return self.comment_slug
 
+    class Meta:
+        db_table='comment'
+
 
 class Answer(models.Model):
     answer_id = models.AutoField(primary_key=True)
@@ -25,6 +28,8 @@ class Answer(models.Model):
     def __str__(self):
         return self.answer_slug
 
+    class Meta:
+        db_table='answer'
 
 class Question(models.Model):
     STATUS = (
@@ -51,3 +56,6 @@ class Question(models.Model):
 
     def get_comments(self):
         return self.comments.values('comment_description', 'moose_user__full_name')
+
+    class Meta:
+        db_table='question'

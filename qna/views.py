@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from qna.models import Question
-from qna.serializers import AddQuestionSerializer
+from qna.serializers import AddQuestionSerializer, RetriveQuestionSerializer, RetriveQuestionOutputSerializer
 
 
 class AddQuestion(APIView):
@@ -32,3 +32,18 @@ class AddQuestion(APIView):
         else:
             return Response(data={"SUCCESS": False, "msg": "request params missing or wrong"},
                             status=status.HTTP_400_BAD_REQUEST)
+
+
+class  RetriveQuestion(APIView):
+
+    def post(self, request, format=None):
+        request_data = RetriveQuestionSerializer(data=request.data)
+        if request_data.is_valid():
+            question_slug = request_data.validated_data["question_slug"]
+            qusetion_data = Question.objects.get(question_slug=question_slug)
+            question = RetriveQuestionOutputSerializer(qusetion_data)
+            return Response(data={'SUCCESS':True, 'question':question.data}, status=status.HTTP_200_OK)
+        else:
+            return Response(data={"SUCCESS": False, "msg": "request params missing or wrong"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
