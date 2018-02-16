@@ -132,3 +132,41 @@ REST_FRAMEWORK = {
     ]
 }
 
+LOGGING = {
+    'version':1,
+    'disable_existing_loggers': False,
+    'formatters':{
+        'myformat':{
+            'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+        },
+    },
+    'handlers':{
+        'file':{
+            'level':'DEBUG',
+            'class':'logging.FileHandler',
+            'filename':'moose_debug.log',
+            'formatter':'myformat'
+        },
+        'console':{
+            'class':'logging.StreamHandler',
+            'formatter':'myformat'
+        }
+    },
+    'loggers':{
+        'django':{
+            'handlers':['file'],
+            'level':'INFO',
+            'propagate':True,
+        },
+        'moose_user':{
+            'handlers':['file','console'],
+            'level':'DEBUG',
+            'propagate':True,
+        },
+    }
+}
+
+# if DEBUG:
+#     # make all loggers use the console.
+#     for logger in LOGGING['loggers']:
+#         LOGGING['loggers'][logger]['handlers'] = ['console']
