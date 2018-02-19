@@ -1,10 +1,12 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from qna.models import Question
-from qna.serializers import AddQuestionSerializer, RetriveQuestionSerializer, RetriveQuestionOutputSerializer
+from qna.models import Question, Answer
+from qna.serializers import AddQuestionSerializer, RetriveQuestionSerializer, RetriveQuestionOutputSerializer, \
+    AddAnswerSerializer
 
 
 class AddQuestion(APIView):
@@ -30,7 +32,7 @@ class AddQuestion(APIView):
                 return Response(data={"SUCCESS": True, "msg": "Question Added"},
                                 status=status.HTTP_200_OK)
             else:
-                return Response(data={"SUCCESS": False, "msg": "request params missing or wrong"},
+                return Response(data={"SUCCESS": False, "msg": "Request params missing or wrong"},
                                 status=status.HTTP_400_BAD_REQUEST)
         except:
             return Response(data={"SUCCESS": False, "msg": "Something went wrong"},
@@ -41,7 +43,31 @@ class AddQuestion(APIView):
 class AddAnswer(APIView):
 
     def post(self, request, format=None):
-        pass
+        try:
+            answer_data = AddAnswerSerializer(data=request.data)
+            if answer_data.is_valid():
+               answer=  Answer();
+               try:
+                   question = Question.objects.get(question_slug = answer_data.validated_data['question_slug'])
+               except ObjectDoesNotExist:
+                   return Response(data={"SUCCESS": False, "msg": "question doesn't exists"})
+               try:
+                   moose_user = request.user
+               except:
+                   return Response(data={"SUCCESS": False, "msg": "User Doesn't exists"})
+               try:
+                   answer.answer_description = answer_data.validated_data['answer_description']
+                   answer.moose_user = moose_user
+                   answer.save()
+                   question.answers.add(answer)
+                   question.save()
+                   return Response(data={"SUCCESS":True, "msg": "Answer saved successfully"})
+               except:
+                   return Response(data={"SUCCESS": False, "msg": "Saving data failed"})
+            else:
+                return Response(data={"SUCCESS": False, "msg":"Request params missing or wrong"})
+        except:
+            return Response(data={"SUCCESS": False, "msg":"Something went wrong"})
 
 
 

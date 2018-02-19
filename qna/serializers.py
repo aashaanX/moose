@@ -9,6 +9,14 @@ class AddQuestionSerializer(serializers.Serializer):
     question_title = serializers.CharField(required=True)
     question_description = serializers.CharField(required=True)
 
+class AddAnswerSerializer(serializers.Serializer):
+    """
+    Serializer for validating input for adding answer
+    """
+    question_slug = serializers.CharField(required=True)
+    answer_description = serializers.CharField(required=True)
+
+
 class RetriveQuestionSerializer(serializers.Serializer):
     """
     Serializer for validating question data for retrving question
@@ -18,9 +26,19 @@ class RetriveQuestionSerializer(serializers.Serializer):
 
 
 class RetriveCommentOutputSerializer(serializers.ModelSerializer):
+
+    moose_user_name = serializers.SerializerMethodField()
+
+    def get_moose_user_name(self, obj):
+        try:
+            return obj.moose_user.full_name
+        except:
+            print("Error while serializing moose user full name")
+            return ""
+
     class Meta:
         model = Comment
-        fields = ('comment_slug', 'comment_description', 'moose_user__full_name')
+        fields = ('comment_slug', 'comment_description', 'moose_user_name')
 
 
 class RetriveAnswerOutputSerializer(serializers.ModelSerializer):
