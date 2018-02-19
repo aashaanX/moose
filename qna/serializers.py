@@ -17,6 +17,14 @@ class AddAnswerSerializer(serializers.Serializer):
     answer_description = serializers.CharField(required=True)
 
 
+class AddCommentQuestionSerializer(serializers.Serializer):
+    """
+    Serializer for Validating input for adding comment for a Question
+    """
+    question_slug = serializers.CharField(required=True)
+    comment_description = serializers.CharField(required=True)
+
+
 class RetriveQuestionSerializer(serializers.Serializer):
     """
     Serializer for validating question data for retrving question
@@ -56,15 +64,22 @@ class RetriveAnswerOutputSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Answer
-        fields = ('answer_slug', 'answer_description', 'votes', 'moose_user__full_name', 'comments')
+        fields = ('answer_slug', 'answer_description', 'votes', 'moose_user_name', 'comments')
 
 
 
 class RetriveQuestionOutputSerializer(serializers.ModelSerializer):
     comments = RetriveCommentOutputSerializer(many=True)
-    answers = RetriveAnswerOutputSerializer(many=True)
+    answers = RetriveAnswerOutputSerializer(read_only=True, many=True)
 
     moose_user_name = serializers.SerializerMethodField()
+
+    # answer_list = serializers.SerializerMethodField()
+
+
+    # def get_answer_list(self,obj):
+    #     answers = RetriveAnswerOutputSerializer(data=obj.answers, many=True)
+    #     return answers.data
 
     def get_moose_user_name(self, obj):
         try:

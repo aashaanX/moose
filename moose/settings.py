@@ -163,6 +163,12 @@ LOGGING = {
             'level':'DEBUG',
             'propagate':True,
         },
+        'qna':{
+            'handlers':['file'],
+            'level':'DEBUG',
+            'propagate':True,
+        },
+
     }
 }
 

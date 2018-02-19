@@ -1,13 +1,16 @@
+import logging
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from qna.models import Question, Answer
+from qna.models import Question, Answer, Comment
 from qna.serializers import AddQuestionSerializer, RetriveQuestionSerializer, RetriveQuestionOutputSerializer, \
-    AddAnswerSerializer
+    AddAnswerSerializer, AddCommentQuestionSerializer
 
+logger = logging.getLogger(__name__)
 
 class AddQuestion(APIView):
     def post(self, request, format=None):
@@ -74,7 +77,31 @@ class AddAnswer(APIView):
 class AddQuestionComment(APIView):
 
     def post(self, request, format=None):
-        pass
+        try:
+            comment_data = AddCommentQuestionSerializer(data=request.data)
+            if comment_data.is_valid():
+                try:
+                    question = Question.objects.get(question_slug=comment_data.validated_data['question_slug'])
+                except ObjectDoesNotExist:
+                    return Response(data={"SUCCESS": False, "msg": "question doesn't exists"})
+                try:
+                    moose_user = request.user
+                except:
+                    return Response(data={"SUCCESS": False, "msg": "User Doesn't exists"})
+                try:
+                    comment = Comment()
+                    comment.comment_description = comment_data.validated_data['comment_description']
+                    comment.moose_user = moose_user
+                    comment.save()
+                    question.comments.add(comment)
+                    question.save()
+                    return Response(data={"SUCCESS":True, "msg":"Comment saved successfully"})
+                except:
+                    return Response(data={"SUCCESS":False, "msg":"Saving data failed"})
+            else:
+                return Response(data={"SUCCESS":False, "msg":"Request param missing or wrong"})
+        except:
+            return Response(data={"SUCCESS":False, "msg": "Something went wrong"})
 
 
 class AddAnswerComment(APIView):
@@ -93,11 +120,14 @@ class RetriveQuestion(APIView):
                 question_slug = request_data.validated_data["question_slug"]
                 qusetion_data = Question.objects.get(question_slug=question_slug)
                 question = RetriveQuestionOutputSerializer(qusetion_data)
+                print("ggrggrg")
+                print(question)
                 return Response(data={'SUCCESS': True, 'question': question.data}, status=status.HTTP_200_OK)
             else:
                 return Response(data={"SUCCESS": False, "msg": "request params missing or wrong"},
                                 status=status.HTTP_400_BAD_REQUEST)
-        except:
+        except Exception as e:
+            print("Exception while retriving question | {}".format(e))
             return Response(data={"SUCCESS": False, "msg":"Something went Wrong"})
 
 
