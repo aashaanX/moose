@@ -25,6 +25,14 @@ class AddCommentQuestionSerializer(serializers.Serializer):
     comment_description = serializers.CharField(required=True)
 
 
+class AddCommentAnswerSerializer(serializers.Serializer):
+    """
+    Serializer for Validating input for adding comment for a Answer
+    """
+    answer_slug = serializers.CharField(required=True)
+    comment_description = serializers.CharField(required=True)
+
+
 class RetriveQuestionSerializer(serializers.Serializer):
     """
     Serializer for validating question data for retrving question

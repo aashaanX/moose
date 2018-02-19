@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from qna.models import Question, Answer, Comment
 from qna.serializers import AddQuestionSerializer, RetriveQuestionSerializer, RetriveQuestionOutputSerializer, \
-    AddAnswerSerializer, AddCommentQuestionSerializer
+    AddAnswerSerializer, AddCommentQuestionSerializer, AddCommentAnswerSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -106,8 +106,32 @@ class AddQuestionComment(APIView):
 
 class AddAnswerComment(APIView):
 
-    def post(self, request, format=None):\
-        pass
+    def post(self, request, format=None):
+        try:
+            comment_data = AddCommentAnswerSerializer(data=request.data)
+            if comment_data.is_valid():
+                try:
+                    answer = Answer.objects.get(answer_slug=comment_data.validated_data['answer_slug'])
+                except ObjectDoesNotExist:
+                    return Response(data={"SUCCESS": False, "msg": "answer doesn't exists"})
+                try:
+                    moose_user = request.user
+                except:
+                    return Response(data={"SUCCESS": False, "msg": "User Doesn't exists"})
+                try:
+                    comment = Comment()
+                    comment.comment_description = comment_data.validated_data['comment_description']
+                    comment.moose_user = moose_user
+                    comment.save()
+                    answer.comments.add(comment)
+                    answer.save()
+                    return Response(data={"SUCCESS":True, "msg":"Comment saved successfully"})
+                except:
+                    return Response(data={"SUCCESS":False, "msg":"Saving data failed"})
+            else:
+                return Response(data={"SUCCESS":False, "msg":"Request param missing or wrong"})
+        except:
+            return Response(data={"SUCCESS":False, "msg": "Something went wrong"})
 
 
 
