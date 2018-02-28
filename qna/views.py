@@ -17,9 +17,13 @@ class AddQuestion(APIView):
     def post(self, request, format=None):
         """
         post Method to add question with moose user
-        :param request: request from the client
-        :param format: format of the request
-        :return: json response with SUCCESS as true
+        Parameters
+        ----------
+            request : json
+                request from user
+            format : string
+                format of the request
+
         """
         try:
             question_data = AddQuestionSerializer(data=request.data)
@@ -58,9 +62,13 @@ class AddAnswer(APIView):
     def post(self, request, format=None):
         """
         post Method to add answer to a question
-        :param request: request from the client
-        :param format: format of the request
-        :return: json response with SUCCESS as true
+        Parameters
+        ----------
+            request : json
+                request from user
+            format : string
+                format of the request
+
         """
         try:
             answer_data = AddAnswerSerializer(data=request.data)
@@ -98,9 +106,13 @@ class AddQuestionComment(APIView):
     def post(self, request, format=None):
         """
         post Method to add a comment to a question with moose user
-        :param request: request from the client
-        :param format: format of the request
-        :return: json response with SUCCESS as true
+        Parameters
+        ----------
+            request : json
+                request from user
+            format : string
+                format of the request
+
         """
         try:
             comment_data = AddCommentQuestionSerializer(data=request.data)
@@ -136,9 +148,13 @@ class AddAnswerComment(APIView):
     def post(self, request, format=None):
         """
         post Method to add comment to an answer with moose user
-        :param request: request from the client
-        :param format: format of the request
-        :return: json response with SUCCESS as true
+        Parameters
+        ----------
+            request : json
+                request from user
+            format : string
+                format of the request
+
         """
         try:
             comment_data = AddCommentAnswerSerializer(data=request.data)
@@ -176,10 +192,6 @@ class RetriveQuestion(APIView):
     def post(self, request, format=None):
         """
         post Method to retrive Question details based on question_slug provided
-        :param request: request from the client
-        :type request: json
-        :param format: format of the request
-        :return: json response with SUCCESS as true
 
         Parameters
         ----------
