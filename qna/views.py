@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from qna.models import Question, Answer, Comment
 from qna.serializers import AddQuestionSerializer, RetriveQuestionSerializer, RetriveQuestionOutputSerializer, \
-    AddAnswerSerializer, AddCommentQuestionSerializer, AddCommentAnswerSerializer
+    AddAnswerSerializer, AddCommentQuestionSerializer, AddCommentAnswerSerializer, VoteAnswerSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -222,4 +222,22 @@ class RetriveQuestion(APIView):
 class VoteAnswer(APIView):
 
     def post(self, request, format=None):
-        pass
+        """
+        vote request contain vote attribute if vote attribute
+        :param request:
+        :param format:
+        :return:
+        """
+        requested_data = VoteAnswerSerializer(data=request.data)
+        if requested_data.is_valid():
+            try:
+                answer = Answer.objects.get(answer_slug=requested_data['answer_slug'])
+            except Exception as error:
+                print("Couldn't get answer object | {}".format(error))
+                return Response(data={"SUCCESS": False, "msg": "answer doesn't exists"})
+            if requested_data['vote']:
+                answer.votes += 1
+                answer.save()
+        else:
+            return Response(data={"SUCCESS": False, "msg": "request params missing or wrong"},
+                                status=status.HTTP_400_BAD_REQUEST)

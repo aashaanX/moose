@@ -101,3 +101,11 @@ class RetriveQuestionOutputSerializer(serializers.ModelSerializer):
         fields = ('question_slug', 'question_title', 'question_description', 'moose_user_name', 'question_status', 'comments', 'answers')
 
 
+class VoteAnswerSerializer(serializers.Serializer):
+    """
+    Serializer for input validation for voting
+    """
+    answer_slug = serializers.CharField(required=True)
+    vote = serializers.BooleanField(required=True)
+
+
