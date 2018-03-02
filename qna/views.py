@@ -26,29 +26,36 @@ class AddQuestion(APIView):
 
         """
         try:
+            logger.debug("Add Question request : {}".format(request.data))
             question_data = AddQuestionSerializer(data=request.data)
             if question_data.is_valid():
+                logger.debug("question data is valid")
                 question_title = question_data.validated_data["question_title"]
                 question_description = question_data.validated_data["question_description"]
                 question = Question()
                 try:
                     question.moose_user = request.user
-                except:
+                except Exception as error:
+                    logger.error("moose user cannot be set | {}".format(error))
                     return Response(data={"SUCCESS": False, "msg": "User not available"},
                                     status=status.HTTP_401_UNAUTHORIZED)
                 question.question_title = question_title
                 question.question_description = question_description
                 try:
                     question.save()
-                except:
+                    logger.debug("Question saved")
+                except Exception as error:
+                    logger.error("Coundn't save question | {}".format(error))
                     return Response(data={"SUCCESS": False, "msg": "Couldn't save question"},
                                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 return Response(data={"SUCCESS": True, "msg": "Question Added"},
                                 status=status.HTTP_200_OK)
             else:
+                logger.error("Validation of request data failed")
                 return Response(data={"SUCCESS": False, "msg": "Request params missing or wrong"},
                                 status=status.HTTP_400_BAD_REQUEST)
-        except:
+        except Exception as error:
+            logger.error("Failed due to {}".format(error))
             return Response(data={"SUCCESS": False, "msg": "Something went wrong"},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -71,29 +78,40 @@ class AddAnswer(APIView):
 
         """
         try:
+            logger.debug("request for add answer : {}".format(request.data))
             answer_data = AddAnswerSerializer(data=request.data)
             if answer_data.is_valid():
+               logger.debug("Answer data is validated")
                answer=  Answer();
                try:
                    question = Question.objects.get(question_slug = answer_data.validated_data['question_slug'])
+                   logger.debug("question : {}".format(question))
                except ObjectDoesNotExist:
+                   logger.error("Question object not found")
                    return Response(data={"SUCCESS": False, "msg": "question doesn't exists"})
                try:
                    moose_user = request.user
+                   logger.debug("moose user for adding answer : {}".format(moose_user))
                except:
+                   logger.error("Moose user not found")
                    return Response(data={"SUCCESS": False, "msg": "User Doesn't exists"})
                try:
                    answer.answer_description = answer_data.validated_data['answer_description']
                    answer.moose_user = moose_user
                    answer.save()
+                   logger.debug("Answer saved")
                    question.answers.add(answer)
                    question.save()
+                   logger.debug("Question saved")
                    return Response(data={"SUCCESS":True, "msg": "Answer saved successfully"})
-               except:
+               except Exception as error:
+                   logger.error("Error While trying to save answer | {}".format(error))
                    return Response(data={"SUCCESS": False, "msg": "Saving data failed"})
             else:
+                logger.error("Data not validated")
                 return Response(data={"SUCCESS": False, "msg":"Request params missing or wrong"})
-        except:
+        except Exception as error:
+            logger.error("Unknown error | {}".format(error))
             return Response(data={"SUCCESS": False, "msg":"Something went wrong"})
 
 
@@ -223,21 +241,29 @@ class VoteAnswer(APIView):
 
     def post(self, request, format=None):
         """
-        vote request contain vote attribute if vote attribute
-        :param request:
-        :param format:
-        :return:
+        post Method to vote for an answer
+        Parameters
+        ----------
+            request : json
+                request from user
+            format : string
+                format of the request
+
         """
-        requested_data = VoteAnswerSerializer(data=request.data)
-        if requested_data.is_valid():
-            try:
-                answer = Answer.objects.get(answer_slug=requested_data['answer_slug'])
-            except Exception as error:
-                print("Couldn't get answer object | {}".format(error))
-                return Response(data={"SUCCESS": False, "msg": "answer doesn't exists"})
-            if requested_data['vote']:
-                answer.votes += 1
-                answer.save()
-        else:
-            return Response(data={"SUCCESS": False, "msg": "request params missing or wrong"},
-                                status=status.HTTP_400_BAD_REQUEST)
+        try:
+            requested_data = VoteAnswerSerializer(data=request.data)
+            if requested_data.is_valid():
+                try:
+                    answer = Answer.objects.get(answer_slug=requested_data['answer_slug'])
+                except Exception as error:
+                    print("Couldn't get answer object | {}".format(error))
+                    return Response(data={"SUCCESS": False, "msg": "answer doesn't exists"})
+                if requested_data['vote']:
+                    answer.votes += 1
+                    answer.save()
+            else:
+                return Response(data={"SUCCESS": False, "msg": "request params missing or wrong"},
+                                    status=status.HTTP_400_BAD_REQUEST)
+        except Exception as error:
+            print("Exception while Voting | {}".format(error))
+            return Response(data={"SUCCESS": False, "msg": "Something went Wrong"})
