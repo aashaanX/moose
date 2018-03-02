@@ -184,29 +184,38 @@ class AddAnswerComment(APIView):
 
         """
         try:
+            logger.debug("Request data for adding answer comment | {}".format(request.data))
             comment_data = AddCommentAnswerSerializer(data=request.data)
             if comment_data.is_valid():
+                logger.debug("Comment data is valid")
                 try:
                     answer = Answer.objects.get(answer_slug=comment_data.validated_data['answer_slug'])
                 except ObjectDoesNotExist:
+                    logger.error("Couldn't find the answer")
                     return Response(data={"SUCCESS": False, "msg": "answer doesn't exists"})
                 try:
                     moose_user = request.user
                 except:
+                    logger.error("Couldn't find the moose user")
                     return Response(data={"SUCCESS": False, "msg": "User Doesn't exists"})
                 try:
                     comment = Comment()
                     comment.comment_description = comment_data.validated_data['comment_description']
                     comment.moose_user = moose_user
                     comment.save()
+                    logger.debug("comment saved")
                     answer.comments.add(comment)
                     answer.save()
+                    logger.debug("answer saved")
                     return Response(data={"SUCCESS":True, "msg":"Comment saved successfully"})
-                except:
+                except Exception as error:
+                    logger.error("Couldn't save comments for the answer | {}".format(error))
                     return Response(data={"SUCCESS":False, "msg":"Saving data failed"})
             else:
+                logger.error("data not validated")
                 return Response(data={"SUCCESS":False, "msg":"Request param missing or wrong"})
-        except:
+        except Exception as error:
+            logger.error("Unkown error | {}".format(error))
             return Response(data={"SUCCESS":False, "msg": "Something went wrong"})
 
 
@@ -226,22 +235,22 @@ class RetriveQuestion(APIView):
                 request from user
             format : string
                 format of the request
-
-
-
         """
         try:
+            logger.debug("Request data to retrive Question | {}".format(request.data))
             request_data = RetriveQuestionSerializer(data=request.data)
             if request_data.is_valid():
+                logger.debug("request data is valid")
                 question_slug = request_data.validated_data["question_slug"]
                 qusetion_data = Question.objects.get(question_slug=question_slug)
                 question = RetriveQuestionOutputSerializer(qusetion_data)
                 return Response(data={'SUCCESS': True, 'question': question.data}, status=status.HTTP_200_OK)
             else:
+                logger.error("Requested data is not valid")
                 return Response(data={"SUCCESS": False, "msg": "request params missing or wrong"},
                                 status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print("Exception while retriving question | {}".format(e))
+            logger.error("Exception while retriving question | {}".format(e))
             return Response(data={"SUCCESS": False, "msg":"Something went Wrong"})
 
 
