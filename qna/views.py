@@ -132,30 +132,39 @@ class AddQuestionComment(APIView):
                 format of the request
 
         """
+        logger.debug("Request for adding question comment : {}".format(request.data))
         try:
             comment_data = AddCommentQuestionSerializer(data=request.data)
             if comment_data.is_valid():
+                logger.debug("comment data is validated")
                 try:
                     question = Question.objects.get(question_slug=comment_data.validated_data['question_slug'])
                 except ObjectDoesNotExist:
+                    logger.error("Question object not found")
                     return Response(data={"SUCCESS": False, "msg": "question doesn't exists"})
                 try:
                     moose_user = request.user
                 except:
+                    logger.error("Moose user not found")
                     return Response(data={"SUCCESS": False, "msg": "User Doesn't exists"})
                 try:
                     comment = Comment()
                     comment.comment_description = comment_data.validated_data['comment_description']
                     comment.moose_user = moose_user
                     comment.save()
+                    logger.debug("Comment Saved")
                     question.comments.add(comment)
                     question.save()
+                    logger.debug("Question Saved")
                     return Response(data={"SUCCESS":True, "msg":"Comment saved successfully"})
-                except:
+                except Exception as error:
+                    logger.error("Couldn't save comment | {}".format(error))
                     return Response(data={"SUCCESS":False, "msg":"Saving data failed"})
             else:
+                logger.error("Data not validated")
                 return Response(data={"SUCCESS":False, "msg":"Request param missing or wrong"})
-        except:
+        except Exception as error:
+            logger.error("Unknow error : {}".format(error))
             return Response(data={"SUCCESS":False, "msg": "Something went wrong"})
 
 
