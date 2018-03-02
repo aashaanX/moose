@@ -23,7 +23,7 @@ class Answer(models.Model):
     moose_user = models.ForeignKey(MooseUser, on_delete=models.CASCADE)
     answer_description = models.TextField()
     comments = models.ManyToManyField(Comment)
-    votes = models.IntegerField(default=0, null=False)
+    votes = models.ManyToManyField(MooseUser)
 
     def __str__(self):
         return self.answer_slug
