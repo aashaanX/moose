@@ -277,7 +277,8 @@ class VoteAnswer(APIView):
                     print("Couldn't get answer object | {}".format(error))
                     return Response(data={"SUCCESS": False, "msg": "answer doesn't exists"})
                 if requested_data['vote']:
-                    answer.votes += 1
+                    moose_user = request.user
+                    answer.votes.add(moose_user)
                     answer.save()
             else:
                 return Response(data={"SUCCESS": False, "msg": "request params missing or wrong"},
