@@ -276,18 +276,10 @@ class VoteAnswer(APIView):
                 except Exception as error:
                     print("Couldn't get answer object | {}".format(error))
                     return Response(data={"SUCCESS": False, "msg": "answer doesn't exists"})
-                try:
-                    moose_user = request.user
-                except:
-                    logger.error("Couldn't find the moose user")
-                    return Response(data={"SUCCESS": False, "msg": "User Doesn't exists"})
                 if requested_data['vote']:
-                    if moose_user not in answer.votes:
-                        answer.votes.add(moose_user)
-                        answer.save()
-                    else:
-                        Response(data={"SUCCESS": False, "msg": "Already voted"},
-                                 status=status.HTTP_406_NOT_ACCEPTABLE)
+                    moose_user = request.user
+                    answer.votes.add(moose_user)
+                    answer.save()
             else:
                 return Response(data={"SUCCESS": False, "msg": "request params missing or wrong"},
                                     status=status.HTTP_400_BAD_REQUEST)
