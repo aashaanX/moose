@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'moose_user.apps.MooseUserConfig',
     'rest_framework',
     'qna.apps.QnaConfig',
+    'django_graphiql'
 ]
 
 MIDDLEWARE = [
@@ -170,6 +171,10 @@ LOGGING = {
         },
 
     }
+}
+
+GRAPHENE = {
+    'SCHEMA':'qna.schema.schema'
 }
 
 # if DEBUG:
