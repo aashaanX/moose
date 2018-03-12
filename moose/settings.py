@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'moose_user.apps.MooseUserConfig',
     'rest_framework',
     'qna.apps.QnaConfig',
-    'django_graphiql'
+    'django_graphiql',
+    'predictor.apps.PredictorConfig',
 ]
 
 MIDDLEWARE = [
