@@ -1,7 +1,9 @@
 import logging
 
+from algoliasearch import algoliasearch
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
+from moose import settings
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -12,12 +14,15 @@ from qna.serializers import AddQuestionSerializer, RetriveQuestionSerializer, Re
     AddAnswerSerializer, AddCommentQuestionSerializer, AddCommentAnswerSerializer, VoteAnswerSerializer
 
 logger = logging.getLogger(__name__)
+#Algolia client object
+client = algoliasearch.Client(settings.ALGOLIA_API_KEY, settings.ALGOLIA_SECRET_KEY)
 
 
 class AddQuestion(APIView):
     "Class to add question"
     permission_classes = (IsAuthenticated,)
-
+    # index for Algolia client
+    index = client.init_index("question")
     def post(self, request, format=None):
         """
         post Method to add question with moose user
@@ -52,6 +57,8 @@ class AddQuestion(APIView):
                     logger.error("Coundn't save question | {}".format(error))
                     return Response(data={"SUCCESS": False, "msg": "Couldn't save question"},
                                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                objectId = self.index.add_object(str({"question":question.question_title}))
+                logger.info("objectId :" + objectId)
                 return Response(data={"SUCCESS": True, "msg": "Question Added"},
                                 status=status.HTTP_200_OK)
             else:
@@ -295,3 +302,5 @@ class VoteAnswer(APIView):
         except Exception as error:
             logger.error("Exception while Voting | {}".format(error))
             return Response(data={"SUCCESS": False, "msg": "Something went Wrong"})
+
+

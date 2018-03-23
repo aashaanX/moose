@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'moose_user.apps.MooseUserConfig',
     'rest_framework',
     'qna.apps.QnaConfig',
-    'django_graphiql',
+    # 'django_graphiql',
     'predictor.apps.PredictorConfig',
 ]
 
@@ -177,6 +177,11 @@ LOGGING = {
 GRAPHENE = {
     'SCHEMA':'qna.schema.schema'
 }
+
+try:
+    from moose.local_settings import *
+except Exception as error:
+    print(error)
 
 # if DEBUG:
 #     # make all loggers use the console.
