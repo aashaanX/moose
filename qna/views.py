@@ -1,3 +1,4 @@
+import json
 import logging
 
 from algoliasearch import algoliasearch
@@ -57,7 +58,9 @@ class AddQuestion(APIView):
                     logger.error("Coundn't save question | {}".format(error))
                     return Response(data={"SUCCESS": False, "msg": "Couldn't save question"},
                                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                objectId = self.index.add_object(str({"question":question.question_title}))
+                question_obj = json.load(question)
+                logger.debug(question_obj)
+                objectId = self.index.add_object(question_obj)
                 logger.info("objectId :" + objectId)
                 return Response(data={"SUCCESS": True, "msg": "Question Added"},
                                 status=status.HTTP_200_OK)
