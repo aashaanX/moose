@@ -46,6 +46,7 @@ class Question(models.Model):
     question_status = models.CharField(max_length=20, choices=STATUS, default='open')
     comments = models.ManyToManyField(Comment)
     answers = models.ManyToManyField(Answer)
+    algoria_object_id = models.CharField(max_length=12)
 
     def __str__(self):
         return self.question_title + "|" + self.moose_user.full_name

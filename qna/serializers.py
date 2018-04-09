@@ -109,3 +109,10 @@ class VoteAnswerSerializer(serializers.Serializer):
     vote = serializers.BooleanField(required=True)
 
 
+class QuestionAlgoliaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Question
+        fields = ("question_title", "question_description", "question_slug")
+
+

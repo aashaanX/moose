@@ -12,7 +12,8 @@ from rest_framework.views import APIView
 
 from qna.models import Question, Answer, Comment
 from qna.serializers import AddQuestionSerializer, RetriveQuestionSerializer, RetriveQuestionOutputSerializer, \
-    AddAnswerSerializer, AddCommentQuestionSerializer, AddCommentAnswerSerializer, VoteAnswerSerializer
+    AddAnswerSerializer, AddCommentQuestionSerializer, AddCommentAnswerSerializer, VoteAnswerSerializer, \
+    QuestionAlgoliaSerializer
 
 logger = logging.getLogger(__name__)
 #Algolia client object
@@ -51,17 +52,24 @@ class AddQuestion(APIView):
                                     status=status.HTTP_401_UNAUTHORIZED)
                 question.question_title = question_title
                 question.question_description = question_description
+                # try:
+                #     question.save()
+                #     logger.debug("Question saved")
+                # except Exception as error:
+                #     logger.error("Coundn't save question | {}".format(error))
+                #     return Response(data={"SUCCESS": False, "msg": "Couldn't save question"},
+                #                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 try:
+                    question_obj = QuestionAlgoliaSerializer(question)
+                    algolia_object = self.index.add_object(question_obj.data)
+                    objectId = algolia_object.get('objectID')
+                    logger.info("objectId :" + objectId)
+                    question.algoria_object_id = objectId
                     question.save()
-                    logger.debug("Question saved")
-                except Exception as error:
-                    logger.error("Coundn't save question | {}".format(error))
-                    return Response(data={"SUCCESS": False, "msg": "Couldn't save question"},
-                                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                question_obj = json.load(question)
-                logger.debug(question_obj)
-                objectId = self.index.add_object(question_obj)
-                logger.info("objectId :" + objectId)
+                except:
+                    logger.error("Operation with Algoria failed")
+                    return Response(data={"SUCCESS": False, "msg": "Couldn't add the index hence won't work with search"},
+                                    status=status.HTTP_400_BAD_REQUEST)
                 return Response(data={"SUCCESS": True, "msg": "Question Added"},
                                 status=status.HTTP_200_OK)
             else:
