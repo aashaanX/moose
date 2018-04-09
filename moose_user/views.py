@@ -70,19 +70,24 @@ class LoginMooseUser(APIView):
                 moose_user.status = 'available'
                 moose_user.save()
                 user = authenticate(user_email=user_email, password=password)
+                logger.debug("User data after auth")
+                logger.debug(user)
             except Exception as e:
                 moose_user.status = 'offline'
                 moose_user.save()
                 logger.error("Error while trying to authenticate user | {}".format(e))
                 return Response(data={"SUCCESS": False, "msg": "Wrong username/ password"},
                                 status=status.HTTP_400_BAD_REQUEST)
-
-            if user is not None:
+            logger.info(user)
+            if user is not None and moose_user.active:
                 login(request, user)
-            if moose_user.active:
                 logger.info("User logged in : {}".format(moose_user.full_name))
                 return Response(data={"SUCCESS": True, "msg": "User Authenticated successfully"},
                                 status=status.HTTP_200_OK)
+            else:
+                logger.debug("user info is none")
+                return Response(data={"SUCCESS": False, "msg": "login credentials not validated"},
+                                status=status.HTTP_400_BAD_REQUEST)
         else:
             logger.error("Login credentials are not valid")
             return Response(data={"SUCCESS": False, "msg": "login credentials not validated"},
