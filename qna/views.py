@@ -315,3 +315,26 @@ class VoteAnswer(APIView):
             return Response(data={"SUCCESS": False, "msg": "Something went Wrong"})
 
 
+class SearchQuestionAlgoria(APIView):
+    """
+    This is API view class to create api to search question indexed in algoria
+    """
+
+    def post(self, request):
+        """
+        API method to search for question from algoria using indexed values
+        :param request:
+        :return:
+        """
+
+        index = client.init_index("question")
+        index.set_settings({"searchableAttributes": ["question_title", "question_description"]})
+        search_result = index.search(request.data["search_key"])
+        objectID_list = []
+        for search in search_result['hits']:
+            objectID_list.append(search['objectID'])
+        questions = Question.objects.filter(algoria_object_id__in=objectID_list)
+        question_data = RetriveQuestionOutputSerializer(questions, many=True)
+        return Response(data={'SUCCESS': True, 'question': question_data.data}, status=status.HTTP_200_OK)
+
+
