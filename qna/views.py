@@ -3,7 +3,6 @@ import logging
 
 from algoliasearch import algoliasearch
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import render
 from moose import settings
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -16,7 +15,7 @@ from qna.serializers import AddQuestionSerializer, RetriveQuestionSerializer, Re
     QuestionAlgoliaSerializer
 
 logger = logging.getLogger(__name__)
-#Algolia client object
+# Algolia client object
 client = algoliasearch.Client(settings.ALGOLIA_API_KEY, settings.ALGOLIA_SECRET_KEY)
 
 
@@ -25,6 +24,7 @@ class AddQuestion(APIView):
     permission_classes = (IsAuthenticated,)
     # index for Algolia client
     index = client.init_index("question")
+
     def post(self, request, format=None):
         """
         post Method to add question with moose user
@@ -52,24 +52,19 @@ class AddQuestion(APIView):
                                     status=status.HTTP_401_UNAUTHORIZED)
                 question.question_title = question_title
                 question.question_description = question_description
-                # try:
-                #     question.save()
-                #     logger.debug("Question saved")
-                # except Exception as error:
-                #     logger.error("Coundn't save question | {}".format(error))
-                #     return Response(data={"SUCCESS": False, "msg": "Couldn't save question"},
-                #                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 try:
                     question_obj = QuestionAlgoliaSerializer(question)
+                    logger.debug("question object for algolia | {}".format(question_obj))
                     algolia_object = self.index.add_object(question_obj.data)
                     objectId = algolia_object.get('objectID')
-                    logger.info("objectId :" + objectId)
+                    logger.info("objectId from algolia:" + objectId)
                     question.algoria_object_id = objectId
                     question.save()
-                except:
-                    logger.error("Operation with Algoria failed")
-                    return Response(data={"SUCCESS": False, "msg": "Couldn't add the index hence won't work with search"},
-                                    status=status.HTTP_400_BAD_REQUEST)
+                except Exception as e:
+                    logger.error("Operation with Algolia failed due to | {}".format(e))
+                    return Response(
+                        data={"SUCCESS": False, "msg": "Couldn't add the index hence won't work with search"},
+                        status=status.HTTP_400_BAD_REQUEST)
                 return Response(data={"SUCCESS": True, "msg": "Question Added"},
                                 status=status.HTTP_200_OK)
             else:
@@ -315,26 +310,41 @@ class VoteAnswer(APIView):
             return Response(data={"SUCCESS": False, "msg": "Something went Wrong"})
 
 
-class SearchQuestionAlgoria(APIView):
+class SearchQuestionAlgolia(APIView):
     """
     This is API view class to create api to search question indexed in algoria
     """
 
-    def post(self, request):
+    def post(self, request, format=None):
         """
-        API method to search for question from algoria using indexed values
-        :param request:
-        :return:
+        API method to search for question from algolia using indexed values
+        Parameters
+        ----------
+            request : json
+                request from user
+            format : string
+                format of the request
+
         """
 
-        index = client.init_index("question")
-        index.set_settings({"searchableAttributes": ["question_title", "question_description"]})
-        search_result = index.search(request.data["search_key"])
-        objectID_list = []
-        for search in search_result['hits']:
-            objectID_list.append(search['objectID'])
-        questions = Question.objects.filter(algoria_object_id__in=objectID_list)
-        question_data = RetriveQuestionOutputSerializer(questions, many=True)
-        return Response(data={'SUCCESS': True, 'question': question_data.data}, status=status.HTTP_200_OK)
-
-
+        try:
+            index = client.init_index("question")
+            index.set_settings({"searchableAttributes": ["question_title", "question_description"]})
+            search_result = index.search(request.data["search_key"])
+            logger.info("Search results achieved from algolia")
+            logger.debug("search result from algolia : {}".format(search_result))
+            objectID_list = []
+            for search in search_result['hits']:
+                objectID_list.append(search['objectID'])
+            if len(objectID_list)==0:
+                logger.info("No Result from algolia")
+                return Response(data={'SUCCESS': False, "msg": "No Search result"},
+                            status=status.HTTP_204_NO_CONTENT)
+            questions = Question.objects.filter(algoria_object_id__in=objectID_list)
+            logger.debug("questions from db :{}".format(questions))
+            question_data = RetriveQuestionOutputSerializer(questions, many=True)
+            return Response(data={'SUCCESS': True, 'question': question_data.data}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error("Exception while retrieving the question | {}".format(e))
+            return Response(data={'SUCCESS': False, "msg": "Something went Wrong"},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
