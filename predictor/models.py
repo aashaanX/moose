@@ -8,6 +8,9 @@ class KeyList(models.Model):
     created_user = models.ForeignKey(MooseUser, related_name='user', on_delete=models.CASCADE)
     key_type = models.CharField(max_length=50, choices=(('Label', 'Label'), ('Feature', 'Feature')))
 
+    def __str__(self):
+        return self.name + "|" + self.key_type
+
 
 class Feature(models.Model):
     name = models.CharField(max_length=50)
@@ -15,16 +18,25 @@ class Feature(models.Model):
     created_user = models.ForeignKey(MooseUser, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name + "|" + str(self.value)
+        return self.name + "|" + str(self.value) + "|" + self.created_user.full_name
 
     def save(self, *args, **kwargs):
+        """
+        Method to save the feature
+        :param args:
+        :param kwargs:
+        :return:
+        """
         if not self.pk:
             if self.name in KeyList.objects.filter(key_type='Feature'):
+                # if name in key list of features add feature
                 super(Feature, self).save(args, kwargs)
             else:
                 if self.created_user.staff or self.created_user.admin:
+                    # if not in key list feature and created user is staff or admin
                     key_value = KeyList()
                     key_value.name = self.name
+                    key_value.key_type = "Feature"
                     key_value.created_user = self.created_user
                     key_value.save()
                     super(Feature, self).save(args, kwargs)
@@ -40,7 +52,7 @@ class Label(models.Model):
     created_user = models.ForeignKey(MooseUser, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name + "|" + str(self.value) + "|" + self.created_user
+        return self.name + "|" + str(self.value) + "|" + self.created_user.full_name
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -50,6 +62,7 @@ class Label(models.Model):
                 if self.created_user.staff or self.created_user.admin:
                     key_value = KeyList()
                     key_value.name = self.name
+                    key_value.key_type = "Label"
                     key_value.created_user = self.created_user
                     key_value.save()
                     super(Label, self).save(args, kwargs)
@@ -65,10 +78,10 @@ class ClassifierMap(models.Model):
     created_user = models.ForeignKey(MooseUser, on_delete=models.CASCADE, related_name='created_user')
 
     def __str__(self):
-        return self.label + "|" + self.features
+        return self.label.name + "|" + str(self.features)
 
 
-class ClassifierSet:
+class ClassifierSet(models.Model):
     name = models.CharField(max_length=50)
     classifier_map = models.ManyToManyField(ClassifierMap)
 
