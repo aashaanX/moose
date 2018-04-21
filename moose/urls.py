@@ -17,12 +17,12 @@ from django.urls.conf import include
 import rest_framework
 from django.contrib import admin
 from django.urls import path
-from graphene_django.views import GraphQLView
+# from graphene_django.views import GraphQLView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('user/', include('moose_user.urls')),
     path('qna/',include('qna.urls')),
-    path('graphql/', GraphQLView.as_view(graphiql=False)),
+    # path('graphql/', GraphQLView.as_view(graphiql=False)),
     #path('graphiql/', include('django_graphiql.urls')),
 ]
