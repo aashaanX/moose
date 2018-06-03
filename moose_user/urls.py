@@ -5,5 +5,6 @@ from . import views
 urlpatterns = [
     path('register/', views.RegisterMooseUser.as_view()),
     path('login/', views.LoginMooseUser.as_view()),
-    path('logout/', views.LogoutMooseUser.as_view())
+    path('logout/', views.LogoutMooseUser.as_view()),
+    path('change_password/', views.ChangePasswordUser.as_view())
 ]

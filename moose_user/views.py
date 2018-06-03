@@ -4,8 +4,9 @@ from django.http.response import JsonResponse
 from django.shortcuts import render
 from django.test.client import JSON_CONTENT_TYPE_RE
 from moose_user.models import MooseUser
-from moose_user.serializers import MooseUserRegisterSerializer, MooseUserLoginSerializer
+from moose_user.serializers import MooseUserRegisterSerializer, MooseUserLoginSerializer, ChangePasswordValidator
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 import logging
@@ -54,7 +55,14 @@ class RegisterMooseUser(APIView):
 
 
 class LoginMooseUser(APIView):
+
     def post(self, request, format=None):
+        """
+            API to login as user
+            :param request: request from the external app
+            :param format: format of the request
+            :return: json with success is true if moose user registered succesfully else will be providing the Error message
+        """
         logger.debug("Request : {}".format(str(request.data)))
         login_credentials = MooseUserLoginSerializer(data=request.data)
         if login_credentials.is_valid():
@@ -96,15 +104,65 @@ class LoginMooseUser(APIView):
 
 class LogoutMooseUser(APIView):
     def get(self, request, format=None):
+        """
+            API to logout the user
+            :param request: request from the external app
+            :param format: format of the request
+            :return: json with success is true if moose user registered succesfully else will be providing the Error message
+        """
         logger.info("Logging out user {}".format(request.user.full_name))
         if request.user.is_authenticated:
             user_name = str(request.user).split("|")[0].strip()
+            logger.debug("User name : {}".format(user_name))
             try:
                 moose_user = MooseUser.objects.get(user_email=user_name)
             except Exception as e:
-                print("Cannot get moose user")
+                logger.error("Can't find user")
                 return Response({"SUCCESS": False}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             moose_user.status = 'offline'
+            logger.debug("Changed user status to offline")
             moose_user.save()
             logout(request)
-        return Response({"SUCCESS": True}, status=status.HTTP_200_OK)
+        else:
+            logger.error("User is not authenticated")
+            return Response({"SUCCESS": False, "msg": "User is not Authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({"SUCCESS": True, "msg": "User logged out successfully"}, status=status.HTTP_200_OK)
+
+
+class ChangePasswordUser(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, format=None):
+        """
+            API to change password for user
+            :param request: request from the external app
+            :param format: format of the request
+            :return: json with success is true if moose user registered succesfully else will be providing the Error message
+        """
+        logger.debug("Changing password")
+        if request.user.is_authenticated:
+            logger.debug("User is Authenticated")
+            user = MooseUser.objects.get(user_email=request.user.user_email)
+            logger.info("Changing the password for user {}".format(user))
+            pass_data = ChangePasswordValidator(data=request.data)
+            if pass_data.is_valid():
+                logger.debug("request data is valid")
+                if user.check_password("{}".format(pass_data.validated_data['old_password']))== True:
+                    logger.info("old password is validated")
+                    user.set_password(pass_data.validated_data['new_password'])
+                    logger.debug("set new password completed")
+                    user.save()
+                    logout(request)
+                    logger.info("User logged out after changing password")
+                    return Response({"SUCCESS": True, "msg": "Password changed successfully"},
+                                    status=status.HTTP_200_OK)
+                else:
+                    logger.error("old passwod not validated")
+                    return Response({"SUCCESS": False, "msg": "Bad request"},
+                                    status=status.HTTP_400_BAD_REQUEST)
+            else:
+                logger.error("Request data is not valid")
+                return Response({"SUCCESS": False, "msg": "Invalid data"}, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            logger.error("User is not authenticated")
+            return Response({"SUCCESS": False, "msg": "User is not logged in"}, status=status.HTTP_401_UNAUTHORIZED)
