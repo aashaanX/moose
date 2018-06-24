@@ -22,3 +22,4 @@ class ChangePasswordValidator(serializers.Serializer):
     old_password = serializers.CharField(style={'input_type': 'password'}, required=True)
     new_password = serializers.CharField(style={'input_type': 'password'}, required=True)
 
+

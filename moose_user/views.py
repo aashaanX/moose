@@ -28,7 +28,7 @@ class RegisterMooseUser(APIView):
         """
 
         try:
-            logger.debug("request : " + str(request))
+            logger.debug("request : " + str(request.data))
             moose_uesr_data = MooseUserRegisterSerializer(data=request.data)
             if moose_uesr_data.is_valid():
                 user = MooseUser()
@@ -45,7 +45,7 @@ class RegisterMooseUser(APIView):
                     return Response(data={"SUCCESS": False, "ERORR": "Data is valid but user cannot be created"},
                                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             else:
-                logger.error("User info in request is not valid")
+                logger.error("User info in request is not valid" + str(moose_uesr_data.validated_data))
                 return Response(data={"SUCCESS": False, "ERORR": "user data is invalid"},
                                 status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
