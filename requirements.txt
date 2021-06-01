@@ -33,4 +33,4 @@ snowballstemmer==1.2.1
 Sphinx==1.7.0
 sphinxcontrib-websupport==1.0.1
 typing==3.6.4
-urllib3==1.22
+urllib3==1.26.5
